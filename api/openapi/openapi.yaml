@@ -1,0 +1,879 @@
+openapi: 3.0.0
+
+info:
+  description: Alpha 0.2.5 version of withcharts data processing and chart creation API
+  version: "0.2.5"
+  title: withcharts API
+  contact:
+    email: dev@withcharts.com
+
+servers:
+  - description: Development server
+    url: http://api.withcharts.com/v0.2.5
+
+tags:
+  - name: Datasets
+    description: Datasets are outcomes of withcharts data processing
+  - name: Decks
+    description: Decks are collections of Charts
+  - name: Charts
+    description: Charts are visualisations of data
+
+
+paths:
+
+  /datasets:
+
+    post:
+      tags:
+        - Datasets
+      summary: Create a new Dataset
+      description: This processes data provided by the API user and creates a new *Dataset*. The API user uploads a data *Source file*. The POST request returns a *Dataset ID*. (This process also creates the *Datacontent* related to the *Dataset*)
+      operationId: controllers.datasets_controller.post_dataset_with_file
+      requestBody:
+        $ref: '#/components/requestBodies/dataset_post_body'
+      responses:
+        '201':
+          description: Succesful *Dataset* creation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/dataset'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+    get:
+      tags:
+        - Datasets
+      summary: Retrieve all Datasets
+      description: This retrieves all existing *Datasets*. The GET request returns a list of *Dataset objects*.
+      operationId: controllers.datasets_controller.get_datasets
+      responses:
+        '200':
+          description: Succesful *Dataset* retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/datasets'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+  /datasets/{dataset_id}:
+
+    get:
+      tags:
+        - Datasets
+      summary: Retrieve a Dataset by its ID
+      description: This retrieves an existing *Dataset*. The API user indicates a *Dataset ID*. The GET request returns a *Dataset object*.
+      operationId: controllers.datasets_controller.get_dataset_by_id
+      parameters:
+        - name: dataset_id
+          in: path
+          description: The API user indicates a Dataset ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Succesful *Dataset* retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/dataset'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+    delete:
+      tags:
+        - Datasets
+      summary: Delete a Dataset by its ID
+      description: This deletes an existing *Dataset*.
+      operationId: controllers.datasets_controller.delete_dataset_by_id
+      parameters:
+        - name: dataset_id
+          in: path
+          description: The API user indicates a Dataset ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Succesful *Dataset* deletion
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+    patch:
+      tags:
+        - Datasets
+      summary: Update a Dataset by its ID
+      description: This updates an existing *Dataset*. The API user indicates a *Dataset ID*. The PATCH request returns the updated *Dataset object*.
+      operationId: controllers.datasets_controller.patch_dataset_by_id
+      parameters:
+        - name: dataset_id
+          in: path
+          description: The API user indicates a Dataset ID
+          required: true
+          schema:
+            type: string
+        - name: op
+          in: query
+          description: The API user indicates the nature of the update operation
+          required: true
+          schema:
+            type: string
+            enum:
+              - replace
+        - name: path
+          in: query
+          description: The API user indicates the path of the update operation
+          required: true
+          schema:
+            type: string
+        - name: value
+          in: query
+          description: The API user indicates the value of the update operation
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/dataset_patch_body'
+      responses:
+        '200':
+          description: Succesful *Dataset* update
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/dataset'
+                  - $ref: '#/components/schemas/dataset_name'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+  /datasets/{dataset_id}/datacontent:
+
+    get:
+      tags:
+        - Datasets
+      summary: Retrieve the Datacontent of a Dataset by its ID
+      description: This retrieves the *Datacontent* of an existing *Dataset*. The API user indicates a *Dataset ID*. The GET request returns a *Datacontent object*.
+      operationId: controllers.datasets_controller.get_datacontent_for_dataset_id
+      parameters:
+        - name: dataset_id
+          in: path
+          description: The API user indicates a Dataset ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Succesful *Datacontent* retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/datacontent'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+  /datasets/{dataset_id}/attribute_values:
+
+    get:
+      tags:
+        - Datasets
+      summary: Retrieve the Attribute Values of a Dataset by its ID
+      description: This retrieves the *Values* of a given *Attribute* in an existing *Dataset*. The API user indicates a *Dataset ID*. The GET request returns a *Attribute Values* object*.
+      operationId: controllers.datasets_controller.get_attribute_values_for_dataset_id
+      parameters:
+        - name: dataset_id
+          in: path
+          description: The API user indicates a Dataset ID
+          required: true
+          schema:
+            type: string
+        - name: attribute
+          in: query
+          description: The API user indicates the desired Attribute
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Succesful *Attribute Values* retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/attribute_values'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+  /datasets/{dataset_id}/chart_suggestions:
+
+    get:
+      tags:
+        - Datasets
+      summary: Retrieve the Chart Suggestions of a Dataset by its ID
+      description: This retrieves the *Chart Suggestions* of an existing *Dataset*. The API user indicates a *Dataset ID*. The GET request returns a *Chart Suggestions* object*.
+      operationId: controllers.datasets_controller.get_chart_suggestions_for_dataset_id
+      parameters:
+        - name: dataset_id
+          in: path
+          description: The API user indicates a Dataset ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Succesful *Chart Suggestions* retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/chart_suggestions'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+
+  /decks:
+
+    post:
+      tags:
+        - Decks
+      summary: Create a new Deck
+      description: This creates a new, empty *Deck* of Charts. The API user indicates a *Deck Name*. The POST request returns a *Deck ID*. The *Deck* will then be populated as *Charts* get added.
+      operationId: controllers.decks_controller.post_deck
+      parameters:
+        - name: include_name
+          in: query
+          description: The API user indicates if the Deck has a specific name
+          schema:
+            type: boolean
+        - name: include_dataset
+          in: query
+          description: The API user indicates if the Deck includes a specific dataset
+          schema:
+            type: boolean
+      requestBody:
+        $ref: '#/components/requestBodies/deck_post_body'
+      responses:
+        '201':
+          description: Succesful *Deck* creation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/deck_id_post_response'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+    get:
+      tags:
+        - Decks
+      summary: Retrieve all Decks
+      description: This retrieves all existing *Decks*. The GET request returns a list of *Deck objects*.
+      operationId: controllers.decks_controller.get_decks
+      responses:
+        '200':
+          description: Succesful *Deck* retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/decks'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+  /decks/{deck_id}:
+
+    get:
+      tags:
+        - Decks
+      summary: Retrieve a Deck by its ID
+      description: This retrieves an existing *Deck*. The API user indicates a *Deck ID*. The GET request returns a *Deck object*.
+      operationId: controllers.decks_controller.get_deck_by_id
+      parameters:
+        - name: deck_id
+          in: path
+          description: The API user indicates a Deck ID
+          required: true
+          schema:
+            type: string
+        - name: extended
+          in: query
+          description: The API user indicates if the Deck description is extended
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Succesful *Deck* retrieval
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/deck_condensed'
+                  - $ref: '#/components/schemas/deck_extended'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+    patch:
+      tags:
+        - Decks
+      summary: Update a Deck by its ID
+      description: This updates an existing *Deck*. The API user indicates a *Deck ID*. The PATCH request returns the updated *Deck object*.
+      operationId: controllers.decks_controller.patch_deck_by_id
+      parameters:
+        - name: deck_id
+          in: path
+          description: The API user indicates a Deck ID
+          required: true
+          schema:
+            type: string
+        - name: op
+          in: query
+          description: The API user indicates the nature of the update operation
+          required: true
+          schema:
+            type: string
+            enum:
+              - add
+              - replace
+              - remove
+        - name: path
+          in: query
+          description: The API user indicates the path of the update operation
+          required: true
+          schema:
+            type: string
+        - name: value
+          in: query
+          description: The API user indicates the value of the update operation
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/deck_patch_body'
+      responses:
+        '200':
+          description: Succesful *Deck* update
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/deck_condensed'
+                  - $ref: '#/components/schemas/deck_name'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+    delete:
+      tags:
+        - Decks
+      summary: Delete a Deck by its ID
+      description: This deletes an existing *Deck*.
+      operationId: controllers.decks_controller.delete_deck_by_id
+      parameters:
+        - name: deck_id
+          in: path
+          description: The API user indicates a Deck ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Succesful *Deck* deletion
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+
+  /charts:
+
+    post:
+      tags:
+        - Charts
+      summary: Create a new Chart
+      description: This creates a new *Chart*. The API user indicates a *Deck ID*, a *Dataset ID*, *Chart Metric* and a *Chart Attribute*. The POST request returns a *Chart object*.
+      operationId: controllers.charts_controller.post_chart
+      requestBody:
+        $ref: '#/components/requestBodies/chart_post_and_put_body'
+      responses:
+        '201':
+          description: Successful *Chart* creation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/chart'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+  /charts/{chart_id}:
+
+    get:
+      tags:
+        - Charts
+      summary: Retrieve a Chart by its ID
+      description: This retrieves an existing *Chart*. The API user indicates a *Chart ID*. The GET request returns a *Chart object*.
+      operationId: controllers.charts_controller.get_chart_by_id
+      parameters:
+        - name: chart_id
+          in: path
+          description: The API user indicates a Chart ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful *Chart* retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/chart'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+    put:
+      tags:
+        - Charts
+      summary: Update a Chart
+      description: This updates an existing *Chart*. The API user indicates a *Chart ID*, a *Deck ID*, a *Dataset ID*, *Chart Metric* and a *Chart Attribute*. The PUT request returns a *Chart object*.
+      operationId: controllers.charts_controller.put_chart_by_id
+      parameters:
+        - name: chart_id
+          in: path
+          description: The API user indicates a Chart ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/chart_post_and_put_body'
+      responses:
+        '201':
+          description: Successful *Chart* update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/chart'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+    delete:
+      tags:
+        - Charts
+      summary: Delete a Chart
+      description: This deletes an existing *Chart*.
+      operationId: controllers.charts_controller.delete_chart_by_id
+      parameters:
+        - name: chart_id
+          in: path
+          description: The API user indicates a Chart ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Successful *Chart* deletion
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_4xx'
+
+
+components:
+
+  schemas:
+
+    dataset:
+      type: object
+      properties:
+        dataset_id:
+          type: string
+          example: '40655045bfy'
+        dataset_name:
+          type: string
+          example: 'KPIs Sheet'
+        source_filename:
+          type: string
+          example: 'KPIs Sheet.xlsx'
+        stored_filename:
+          type: string
+          example: '91a11f8e-ae18-49bc-9e25-2d6d21cc991f.xlsx'
+        dataset_rows:
+          type: integer
+          example: 1500
+        dataset_columns:
+          type: integer
+          example: 8
+        dataset_headers:
+          type: array
+          items:
+            type: string
+            example: ['Revenue','Sign-Ups','Active Users','Month','Country','Channel']
+        dataset_metrics_headers:
+          type: array
+          items:
+            type: string
+            example: ['Revenue','Sign-Ups','Active Users']
+        dataset_attributes_headers:
+          type: array
+          items:
+            type: string
+            example: ['Month','Country','Channel']
+        datacontent_id:
+          type: string
+          example: '8408956oeh'
+        date_created:
+          type: string
+          example: '2020-02-25'
+        date_last_modified:
+          type: string
+          example: '2020-02-25'
+
+    datasets:
+      type: array
+      items:
+        $ref: '#/components/schemas/dataset'
+
+    dataset_name:
+      type: object
+      properties:
+        dataset_name:
+          type: string
+          example: 'KPIs Sheet'
+
+    datacontent:
+      type: object
+      properties:
+        datacontent_id:
+          type: string
+          example: '8408956oeh'
+        dataset_id:
+          type: string
+          example: '40655045bfy'
+        datacontent_values:
+          type: object
+        date_created:
+          type: string
+          example: '2020-02-25'
+        date_last_modified:
+          type: string
+          example: '2020-02-25'
+
+    attribute_values:
+      type: object
+      properties:
+        dataset_id:
+          type: string
+          example: '40655045bfy'
+        attribute:
+          type: string
+          example: 'Month'
+        values:
+          type: object
+
+    chart_suggestions:
+      type: object
+      properties:
+        dataset_id:
+          type: string
+          example: '40655045bfy'
+        chart_suggestion_values:
+          type: object
+
+    deck_condensed:
+      type: object
+      properties:
+        deck_id:
+          type: string
+          example: '10000152acx'
+        deck_name:
+          type: string
+          example: 'Q1 2020 Finance Charts'
+        deck_datasets:
+          type: array
+          items:
+            type: object
+            properties:
+              dataset_id:
+                type: string
+                example: '8084564elmw'
+        deck_charts:
+          type: array
+          items:
+            type: object
+            properties:
+              chart_id:
+                type: string
+                example: '5000158oje'
+        deck_charts_number:
+          type: integer
+          example: 8
+        date_created:
+          type: string
+          example: '2020-02-25'
+        date_last_modified:
+          type: string
+          example: '2020-02-25'
+
+    deck_extended:
+      type: object
+      properties:
+        deck_id:
+          type: string
+          example: '10000152acx'
+        deck_name:
+          type: string
+          example: 'Q1 2020 Finance Charts'
+        deck_datasets:
+          type: array
+          items:
+            type: object
+            properties:
+              dataset_id:
+                type: string
+                example: '8084564elmw'
+        deck_charts:
+          type: array
+          items:
+            $ref: '#/components/schemas/chart'
+        deck_charts_number:
+          type: integer
+          example: 8
+        date_created:
+          type: string
+          example: '2020-02-25'
+        date_last_modified:
+          type: string
+          example: '2020-02-25'
+
+    decks:
+      type: array
+      items:
+        $ref: '#/components/schemas/deck_condensed'
+
+    deck_name:
+      type: object
+      properties:
+        deck_name:
+          type: string
+          example: 'Q1 2020 Finance Charts'
+
+    deck_id_post_response:
+      type: object
+      properties:
+        deck_id:
+          type: string
+          example: '10000152acx'
+
+    chart:
+      type: object
+      properties:
+        chart_id:
+          type: string
+          example: '5000158oje'
+        chart_title:
+          type: string
+          example: 'Revenue by Month'
+        chart_metric:
+          type: string
+          example: 'Revenue'
+        chart_attribute:
+          type: string
+          example: 'Month'
+        dataset_id:
+          type: string
+          example: '8084564elmw'
+        chart_data:
+          type: object
+        date_created:
+          type: string
+          example: '2020-02-25'
+        date_last_modified:
+          type: string
+          example: '2020-02-25'
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/chart_filter_item'
+
+    chart_filter_item:
+      type: object
+      properties:
+        filter_number:
+          type: integer
+          example: 2
+        attribute:
+          type: string
+          example: 'Geography'
+        filter_values:
+          type: array
+          items:
+            type: string
+
+    error_4xx:
+      type: object
+      properties:
+        error:
+          type: string
+          example: 'Bad request'
+        status:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: 'Invalid request or parameter'
+
+  requestBodies:
+
+    dataset_post_body:
+      description: The API user uploads a data *Source file*.
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              source_file:
+                type: string
+                format: binary
+
+    dataset_patch_body:
+      description: The API user indicates a *Dataset Name*.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              dataset_name:
+                type: string
+                example: 'KPIs Sheet'
+
+    deck_post_body:
+      description: The API user indicates a *Deck Name*.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              deck_name:
+                type: string
+                example: 'Q1 2020 Finance Charts'
+              dataset_id:
+                type: string
+                example: '8084564elmw'
+
+    deck_patch_body:
+      description: The API user indicates a *Deck Name*.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              deck_name:
+                type: string
+                example: 'Q1 2020 Finance Charts'
+
+    chart_post_and_put_body:
+      description: The API user indicates a *Deck ID*, a *Dataset ID*, a *Chart Metric* and a *Chart Attribute*.
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              deck_id:
+                type: string
+                example: '10000152acx'
+              dataset_id:
+                type: string
+                example: '8084564elmw'
+              chart_metric:
+                type: string
+                example: 'Revenue'
+              chart_attribute:
+                type: string
+                example: 'Month'
+              filters:
+                type: array
+                items:
+                  $ref: '#/components/schemas/chart_filter_item'
